@@ -1,0 +1,44 @@
+
+<script>
+    window.onload = function (event) {
+        Checkout.showPaymentPage()
+    };
+</script>
+
+<script>
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    const sessionId = params.sessionId;
+
+</script>
+
+
+<script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js" data-error="errorCallback"
+    data-cancel="cancelCallback" >
+    </script>
+
+<script type="text/javascript">
+
+    function errorCallback(error) {
+        console.log(JSON.stringify(error));
+    }
+    
+    function cancelCallback() {
+        window.location.href = 'https://google.com'
+    }
+
+    function completeCallback() {
+        // window.location.href = `https://9ec2-2407-c00-d001-6aef-48c2-e30f-f35a-a8d5.in.ngrok.io/process/pay/response`;
+    }
+
+    Checkout.configure({
+        // merchant: merchantId,yy
+        session: {
+            id: sessionId
+        }
+    });
+
+</script>
+
