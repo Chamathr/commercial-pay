@@ -30,7 +30,7 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `https://c73d-112-134-218-213.in.ngrok.io/process/pay/response/${orderId}`
+            "returnUrl": `https://commercial-pay.azurewebsites.net/process/pay/response/${orderId}`
         },
     }
 
