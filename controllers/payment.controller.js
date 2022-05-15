@@ -11,28 +11,6 @@ const makePayment = async (req, res, next) => {
     const amount = req.body.amount;
     const orderId = req.body.orderId;
 
-    try {
-        const userIdExists = await prisma.payment.findUnique({
-            where: {
-                payment_id: orderId
-            }
-        })
-        if (userIdExists) {
-            return res.send({ message: "user ID already exits" })
-        }
-        else {
-            await prisma.payment.create({
-                data: {
-                    payment_id: orderId,
-                    payment_status: 'PENDING'
-                }
-            })
-        }
-    }
-    catch (error) {
-        return res.status(500).send({ error });
-    }
-
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
         "order": {
@@ -52,13 +30,13 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `https://0956-112-134-218-213.in.ngrok.io/process/pay/response/${orderId}`
+            "returnUrl": `https://c73d-112-134-218-213.in.ngrok.io/process/pay/response/${orderId}`
         },
     }
 
     try {
         gatewayService.getSession(requestData, async (result) => {
-            res.send(`https://portcitcommercialpay.z19.web.core.windows.net/?sessionId=${result.session.id}`)
+            res.send(`https://portcitcommercialpay.z19.web.core.windows.net/?sessionId=${result.session?.id}`)
         });
     }
     catch (error) {
@@ -68,10 +46,30 @@ const makePayment = async (req, res, next) => {
 };
 
 
-const getResponse = async (request, response, next) => {
+const getResponse = async (req, res, next) => {
 
-    const orderId = request.params.orderId;
-    
+    const orderId = req.params.orderId;
+
+    try {
+        const userIdExists = await prisma.payment.findUnique({
+            where: {
+                payment_id: orderId
+            }
+        })
+        if (!userIdExists) {
+            await prisma.payment.create({
+                data: {
+                    payment_id: orderId,
+                    payment_status: 'PENDING'
+                }
+            })
+        }
+
+    }
+    catch (error) {
+        res.status(500).send({ error });
+    }
+
     try {
         const apiRequest = { orderId: orderId };
         const requestUrl = gatewayService.getRequestUrl("REST", apiRequest);
@@ -87,15 +85,21 @@ const getResponse = async (request, response, next) => {
                     validationType: null
                 }
 
-                await prisma.payment.update(
-                    {
-                        where: { payment_id: orderId },
-                        data: {
-                            payment_status: 'FAIL'
+                try {
+                    await prisma.payment.update(
+                        {
+                            where: { payment_id: orderId },
+                            data: {
+                                payment_status: 'FAIL'
+                            }
                         }
-                    }
-                )
-                // response.redirect('https://www.espncricinfo.com/')
+                    )
+                }
+                catch (error) {
+                    res.status(500).send(error)
+                }
+
+                // res.redirect('https://www.espncricinfo.com/')
 
             } else {
                 const ressuccess = {
@@ -105,21 +109,27 @@ const getResponse = async (request, response, next) => {
                     resbody: JSON.parse(result)
                 }
 
-                await prisma.payment.update(
-                    {
-                        where: { payment_id: orderId },
-                        data: {
-                            payment_status: 'SUCCESS'
+                try {
+                    await prisma.payment.update(
+                        {
+                            where: { payment_id: orderId },
+                            data: {
+                                payment_status: 'SUCCESS'
+                            }
                         }
-                    }
-                )
-                response.redirect('https://www.espncricinfo.com/')
+                    )
+                }
+                catch (error) {
+                    res.status(500).send(error)
+                }
+
+                res.redirect('https://www.espncricinfo.com/')
             }
         });
     }
 
     catch (error) {
-        response.status(500).send(error);
+        res.status(500).send(error);
     }
 
 };
