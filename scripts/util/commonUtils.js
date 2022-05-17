@@ -11,8 +11,12 @@ const keyGen = (keyLength) => {
     return key;
 }
 
-const getCurrency = (keyLength) => {
+const getCurrency = () => {
     return config.CURRENCY;
+}
+
+const getWebhookBaseUrl = () => {
+    return config.WEBHOOKS.WEBHOOKS_NOTIFICATION_SECRET;
 }
 
 const setAuthentication = (config, options) => {
@@ -47,6 +51,7 @@ const getTestMerchantUrl = (config) => {
     return getBaseUrl(config) + "/api/rest/version/" + config.TEST_GATEWAY.API_VERSION + "/merchant/" + config.TEST_GATEWAY.MERCHANTID;
 }
 
+
 module.exports = {
     keyGen: keyGen,
     getCurrency: getCurrency,
@@ -55,4 +60,5 @@ module.exports = {
     getApiVersion: getApiVersion,
     getMerchantId: getMerchantId,
     getTestMerchantUrl: getTestMerchantUrl,
+    getWebhookBaseUrl: getWebhookBaseUrl
 }

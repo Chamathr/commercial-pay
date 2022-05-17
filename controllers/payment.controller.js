@@ -11,6 +11,8 @@ const makePayment = async (req, res, next) => {
     const amount = req.body.amount;
     const orderId = req.body.orderId;
 
+    const webhookBaseUrl = utils.getWebhookBaseUrl()
+
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
         "order": {
@@ -30,7 +32,8 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `https://commercial-pay.azurewebsites.net/process/pay/response/${orderId}`
+            "returnUrl": `${webhookBaseUrl}/process/pay/response/${orderId}`
+
         },
     }
 
