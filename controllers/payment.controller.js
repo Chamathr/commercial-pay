@@ -6,12 +6,16 @@ require('dotenv').config()
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
+const currency = utils.getCurrency()
+const webhookBaseUrl = utils.getWebhookBaseUrl()
+const successPageUrl = utils.getSuccessPageUrl()
+const errorPageUrl = utils.getErrorPageUrl()
+const staticPageBaseUrl = utils.getStaticPageBaseUrl()
+
 const makePayment = async (req, res, next) => {
 
     const amount = req.body.amount;
     const orderId = req.body.orderId;
-
-    const webhookBaseUrl = utils.getWebhookBaseUrl()
 
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
@@ -19,7 +23,7 @@ const makePayment = async (req, res, next) => {
             "id": orderId,
             "amount": amount,
             "description": 'Payment details',
-            "currency": utils.getCurrency()
+            "currency": currency
         },
         "interaction": {
             "operation": "AUTHORIZE",
@@ -39,7 +43,7 @@ const makePayment = async (req, res, next) => {
 
     try {
         gatewayService.getSession(requestData, async (result) => {
-            res.send(`https://portcitcommercialpay.z19.web.core.windows.net/?sessionId=${result.session?.id}`)
+            res.send(`${staticPageBaseUrl}/?sessionId=${result.session?.id}`)
         });
     }
     catch (error) {
@@ -102,7 +106,7 @@ const getResponse = async (req, res, next) => {
                     res.status(500).send(error)
                 }
 
-                // res.redirect('https://www.espncricinfo.com/')
+                res.redirect(errorPageUrl)
 
             } else {
                 const ressuccess = {
@@ -126,7 +130,7 @@ const getResponse = async (req, res, next) => {
                     res.status(500).send(error)
                 }
 
-                res.redirect('https://www.espncricinfo.com/')
+                res.redirect(successPageUrl)
             }
         });
     }

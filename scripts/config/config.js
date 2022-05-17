@@ -1,4 +1,4 @@
-require('dotenv').config() 
+require('dotenv').config()
 const CONFIG = {};
 CONFIG.JWT = {
     SECRET: 'TEST_SECRET'
@@ -26,5 +26,10 @@ CONFIG.WEBHOOKS = {
 CONFIG.SSL_FILES = {
     CRT: process.env.SSL_CRT_PATH,
     KEY: process.env.SSL_KEY_PATH
+}
+CONFIG.URL = {
+    SUCCESS_PAGE_URL: process.env.SUCCESS_PAGE_URL,
+    ERROR_PAGE_URL: process.env.ERROR_PAGE_URL,
+    STATIC_PAGE_URL: process.env.STATIC_PAGE_URL
 }
 module.exports = CONFIG;

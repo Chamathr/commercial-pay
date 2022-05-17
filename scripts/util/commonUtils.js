@@ -19,6 +19,18 @@ const getWebhookBaseUrl = () => {
     return config.WEBHOOKS.WEBHOOKS_NOTIFICATION_SECRET;
 }
 
+const getStaticPageBaseUrl = () => {
+    return config.URL.STATIC_PAGE_URL;
+}
+
+const getSuccessPageUrl = () => {
+    return config.URL.SUCCESS_PAGE_URL;
+}
+
+const getErrorPageUrl = () => {
+    return config.URL.ERROR_PAGE_URL;
+}
+
 const setAuthentication = (config, options) => {
     if (config.IS_CERT_AUTH_ENABLED === 'true') {
         options.agentOptions = {
@@ -60,5 +72,8 @@ module.exports = {
     getApiVersion: getApiVersion,
     getMerchantId: getMerchantId,
     getTestMerchantUrl: getTestMerchantUrl,
-    getWebhookBaseUrl: getWebhookBaseUrl
+    getWebhookBaseUrl: getWebhookBaseUrl,
+    getStaticPageBaseUrl: getStaticPageBaseUrl,
+    getSuccessPageUrl: getSuccessPageUrl,
+    getErrorPageUrl: getErrorPageUrl
 }
