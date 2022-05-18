@@ -68,16 +68,16 @@ const getResponse = async (req, res, next) => {
 
     try {
         const options = {
-            url: databaseServiceUrl,
-            method: 'POST',
-            headers: {
+            "url": databaseServiceUrl,
+            "method": 'POST',
+            "headers": {
                 'Accept': 'application/json',
                 'Accept-Charset': 'utf-8',
                 'User-Agent': 'my-reddit-client'
             },
-            body: {
-                payment_id: orderId,
-                payment_status: 'PENDING'
+            "body": {
+                "payment_id": orderId,
+                "payment_status": 'PENDING'
             }
         };
 
@@ -106,16 +106,16 @@ const getResponse = async (req, res, next) => {
 
                 try {
                     const options = {
-                        url: databaseServiceUrl,
-                        method: 'POST',
-                        headers: {
+                        "url": databaseServiceUrl,
+                        "method": 'POST',
+                        "headers": {
                             'Accept': 'application/json',
                             'Accept-Charset': 'utf-8',
                             'User-Agent': 'my-reddit-client'
                         },
-                        body: {
-                            payment_id: orderId,
-                            payment_status: 'FAIL'
+                        "body": {
+                            "payment_id": orderId,
+                            "payment_status": 'FAIL'
                         }
                     };
             
@@ -139,16 +139,16 @@ const getResponse = async (req, res, next) => {
 
                 try {
                     const options = {
-                        url: databaseServiceUrl,
-                        method: 'POST',
-                        headers: {
+                        "url": databaseServiceUrl,
+                        "method": 'POST',
+                        "headers": {
                             'Accept': 'application/json',
                             'Accept-Charset': 'utf-8',
                             'User-Agent': 'my-reddit-client'
                         },
-                        body: {
-                            payment_id: orderId,
-                            payment_status: 'SUCCESS'
+                        "body": {
+                            "payment_id": orderId,
+                            "payment_status": 'SUCCESS'
                         }
                     };
             
