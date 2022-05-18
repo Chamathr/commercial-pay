@@ -1,21 +1,20 @@
 var gatewayService = require('../service/gatewayService');
 var utils = require('../scripts/util/commonUtils');
-var config = require('../scripts/config/config');
 require('dotenv').config()
-
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const request = require('request');
 
 const currency = utils.getCurrency()
 const webhookBaseUrl = utils.getWebhookBaseUrl()
 const successPageUrl = utils.getSuccessPageUrl()
 const errorPageUrl = utils.getErrorPageUrl()
 const staticPageBaseUrl = utils.getStaticPageBaseUrl()
+const databaseServiceBaseUrl = utils.getDatabaseServiceBaseUrl()
 
 const makePayment = async (req, res, next) => {
 
     const amount = req.body.amount;
     const orderId = req.body.orderId;
+    const paymentType = req.body.paymentType
 
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
@@ -36,7 +35,7 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `${webhookBaseUrl}/process/pay/response/${orderId}`
+            "returnUrl": `${webhookBaseUrl}/process/pay/response/${orderId}/${paymentType}`
 
         },
     }
@@ -56,22 +55,35 @@ const makePayment = async (req, res, next) => {
 const getResponse = async (req, res, next) => {
 
     const orderId = req.params.orderId;
+    const paymentType = req.params.paymentType
+    let databaseServiceUrl = ''
+
+
+    if (paymentType === 'resident') {
+        databaseServiceUrl = `${databaseServiceBaseUrl}/api/v1/payments`
+    }
+    if (paymentType === 'business') {
+        databaseServiceUrl = `${databaseServiceBaseUrl}/business`
+    }
 
     try {
-        const userIdExists = await prisma.payment.findUnique({
-            where: {
-                payment_id: orderId
+        const options = {
+            url: databaseServiceUrl,
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Accept-Charset': 'utf-8',
+                'User-Agent': 'my-reddit-client'
+            },
+            body: {
+                payment_id: orderId,
+                payment_status: 'PENDING'
             }
-        })
-        if (!userIdExists) {
-            await prisma.payment.create({
-                data: {
-                    payment_id: orderId,
-                    payment_status: 'PENDING'
-                }
-            })
-        }
+        };
 
+        request(options, (err, res, body) => {
+            const result = JSON.parse(res);
+        });
     }
     catch (error) {
         res.status(500).send({ error });
@@ -93,14 +105,23 @@ const getResponse = async (req, res, next) => {
                 }
 
                 try {
-                    await prisma.payment.update(
-                        {
-                            where: { payment_id: orderId },
-                            data: {
-                                payment_status: 'FAIL'
-                            }
+                    const options = {
+                        url: databaseServiceUrl,
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Accept-Charset': 'utf-8',
+                            'User-Agent': 'my-reddit-client'
+                        },
+                        body: {
+                            payment_id: orderId,
+                            payment_status: 'FAIL'
                         }
-                    )
+                    };
+            
+                    request(options, (err, res, body) => {
+                        const result = JSON.parse(res);
+                    });
                 }
                 catch (error) {
                     res.status(500).send(error)
@@ -117,14 +138,23 @@ const getResponse = async (req, res, next) => {
                 }
 
                 try {
-                    await prisma.payment.update(
-                        {
-                            where: { payment_id: orderId },
-                            data: {
-                                payment_status: 'SUCCESS'
-                            }
+                    const options = {
+                        url: databaseServiceUrl,
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Accept-Charset': 'utf-8',
+                            'User-Agent': 'my-reddit-client'
+                        },
+                        body: {
+                            payment_id: orderId,
+                            payment_status: 'SUCCESS'
                         }
-                    )
+                    };
+            
+                    request(options, (err, res, body) => {
+                        const result = JSON.parse(res);
+                    });
                 }
                 catch (error) {
                     res.status(500).send(error)

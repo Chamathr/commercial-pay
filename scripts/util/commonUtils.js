@@ -31,6 +31,10 @@ const getErrorPageUrl = () => {
     return config.URL.ERROR_PAGE_URL;
 }
 
+const getDatabaseServiceBaseUrl = () => {
+    return config.URL.DATABASE_SERVICE_URL;
+}
+
 const setAuthentication = (config, options) => {
     if (config.IS_CERT_AUTH_ENABLED === 'true') {
         options.agentOptions = {
@@ -75,5 +79,6 @@ module.exports = {
     getWebhookBaseUrl: getWebhookBaseUrl,
     getStaticPageBaseUrl: getStaticPageBaseUrl,
     getSuccessPageUrl: getSuccessPageUrl,
-    getErrorPageUrl: getErrorPageUrl
+    getErrorPageUrl: getErrorPageUrl,
+    getDatabaseServiceBaseUrl: getDatabaseServiceBaseUrl
 }
