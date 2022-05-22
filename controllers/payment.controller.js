@@ -42,11 +42,22 @@ const makePayment = async (req, res, next) => {
 
     try {
         gatewayService.getSession(requestData, async (result) => {
-            res.send(`${staticPageBaseUrl}/?sessionId=${result.session?.id}`)
+            const paymentUrl = `${staticPageBaseUrl}/?sessionId=${result.session?.id}`
+            const responseBody = {
+                status: 200,
+                message: 'success',
+                result: paymentUrl
+            }
+            res.send(responseBody)
         });
     }
     catch (error) {
-        res.status(500).send(error)
+        const errorBody = {
+            status: 500,
+            message: 'fail',
+            result: error
+        }
+        res.status(500).send(errorBody)
     }
 
 };
@@ -86,7 +97,12 @@ const getResponse = async (req, res, next) => {
         });
     }
     catch (error) {
-        res.status(500).send({ error });
+        const errorBody = {
+            status: 500,
+            message: 'fail',
+            results: error
+        }
+        res.status(500).send(errorBody);
     }
 
     try {
@@ -118,13 +134,18 @@ const getResponse = async (req, res, next) => {
                             "payment_status": 'FAIL'
                         }
                     };
-            
+
                     request(options, (err, res, body) => {
                         const result = JSON.parse(res);
                     });
                 }
                 catch (error) {
-                    res.status(500).send(error)
+                    const errorBody = {
+                        status: 500,
+                        message: 'fail',
+                        results: error
+                    }
+                    res.status(500).send(errorBody)
                 }
 
                 res.redirect(errorPageUrl)
@@ -151,13 +172,18 @@ const getResponse = async (req, res, next) => {
                             "payment_status": 'SUCCESS'
                         }
                     };
-            
+
                     request(options, (err, res, body) => {
                         const result = JSON.parse(res);
                     });
                 }
                 catch (error) {
-                    res.status(500).send(error)
+                    const errorBody = {
+                        status: 500,
+                        message: 'fail',
+                        results: error
+                    }
+                    res.status(500).send(errorBody)
                 }
 
                 res.redirect(successPageUrl)
@@ -166,7 +192,12 @@ const getResponse = async (req, res, next) => {
     }
 
     catch (error) {
-        res.status(500).send(error);
+        const errorBody = {
+            status: 500,
+            message: 'fail',
+            results: error
+        }
+        res.status(500).send(errorBody);
     }
 
 };
