@@ -16,6 +16,12 @@ const makePayment = async (req, res, next) => {
     const paymentType = req.body.paymentType
     const paymentFor = req.body.paymentFor
     const paymentAmount = req.body.paymentAmount
+    const familyMemberId = req.body.familyMemberId 
+    const paymentTypeId = req.body.paymentTypeId
+    const referenceCode = req.body.referenceCode 
+    const referenceCodeExpiryDate = req.body.referenceCodeExpiryDate 
+    const createdBy = req.body.createdBy
+    const lastModifiedBy = req.body.lastModifiedBy
 
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
@@ -36,7 +42,7 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `${webhookBaseUrl}/process/pay/response?paymentId=${paymentId}&paymentType=${paymentType}&paymentFor=${paymentFor}&paymentAmount=${paymentAmount}`
+            "returnUrl": `${webhookBaseUrl}/process/pay/response?paymentId=${paymentId}&paymentType=${paymentType}&paymentFor=${paymentFor}&paymentAmount=${paymentAmount}&familyMemberId=${familyMemberId}&paymentTypeId=${paymentTypeId}&referenceCode=${referenceCode}&referenceCodeExpiryDate=${referenceCodeExpiryDate}&createdBy=${createdBy}&lastModifiedBy=${lastModifiedBy}`
 
         },
     }
@@ -66,27 +72,34 @@ const makePayment = async (req, res, next) => {
 
 const getResponse = async (req, res, next) => {
 
-    const paymentId = req.query.paymentId;
-    const paymentType = req.query.paymentType;
+    const paymentId = req.query.paymentId
+    const paymentType = req.query.paymentType
     const paymentFor = req.query.paymentFor
     const paymentAmount = req.query.paymentAmount
+    const familyMemberId = req.query.familyMemberId === 'null' ? null : req.body.familyMemberId
+    const paymentTypeId = req.query.paymentTypeId
+    const referenceCode = req.query.referenceCode === 'null' ? null : req.body.referenceCode
+    const referenceCodeExpiryDate = req.query.referenceCodeExpiryDate === 'null' ? null : req.body.referenceCodeExpiryDate
+    const createdBy = req.query.createdBy
+    const lastModifiedBy = req.query.lastModifiedBy
 
     let databaseServiceUrl = ''
-    let paymentBody = {
-        "resident_id": 1,
-        "payment_for": paymentFor,
-        "family_member_id": null,
-        "payment_amount": paymentAmount,
-        "payment_type_id": 1,
-        "reference_code": null,
-        "reference_code_expiry_date": null,
-        "payment_date": new Date(),
-        "created_by": 0,
-        "last_modified_by": 0
-    }
+    let paymentBody = {}
 
     if (paymentType === 'resident') {
         databaseServiceUrl = `${databaseServiceBaseUrl}/api/v1/payments`
+        paymentBody = {
+            "resident_id": 1,
+            "payment_for": paymentFor,
+            "family_member_id": familyMemberId,
+            "payment_amount": paymentAmount,
+            "payment_type_id": paymentTypeId,
+            "reference_code": referenceCode,
+            "reference_code_expiry_date": referenceCodeExpiryDate,
+            "payment_date": new Date(),
+            "created_by": createdBy,
+            "last_modified_by": lastModifiedBy
+        }
     }
     if (paymentType === 'business') {
         databaseServiceUrl = `${databaseServiceBaseUrl}/business`
