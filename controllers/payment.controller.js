@@ -12,22 +12,23 @@ const databaseServiceBaseUrl = utils.getDatabaseServiceBaseUrl()
 
 const makePayment = async (req, res, next) => {
 
-    const amount = req.body.amount;
-    const orderId = req.body.orderId;
+    const paymentId = req.body.paymentId;
     const paymentType = req.body.paymentType
+    const paymentFor = req.body.paymentFor
+    const paymentAmount = req.body.paymentAmount
 
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
         "order": {
-            "id": orderId,
-            "amount": amount,
+            "id": paymentId,
+            "amount": paymentAmount,
             "description": 'Payment details',
             "currency": currency
         },
         "interaction": {
             "operation": "AUTHORIZE",
             "merchant": {
-                "name": `USER - ${orderId}`,
+                "name": `USER - ${paymentId}`,
             },
             "displayControl": {
                 "billingAddress": 'HIDE',
@@ -35,7 +36,7 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
-            "returnUrl": `${webhookBaseUrl}/process/pay/response/${orderId}/${paymentType}`
+            "returnUrl": `${webhookBaseUrl}/process/pay/response?paymentId=${paymentId}&paymentType=${paymentType}&paymentFor=${paymentFor}&paymentAmount=${paymentAmount}`
 
         },
     }
@@ -65,10 +66,24 @@ const makePayment = async (req, res, next) => {
 
 const getResponse = async (req, res, next) => {
 
-    const orderId = req.params.orderId;
-    const paymentType = req.params.paymentType
-    let databaseServiceUrl = ''
+    const paymentId = req.query.paymentId;
+    const paymentType = req.query.paymentType;
+    const paymentFor = req.query.paymentFor
+    const paymentAmount = req.query.paymentAmount
 
+    let databaseServiceUrl = ''
+    let paymentBody = {
+        "resident_id": 1,
+        "payment_for": paymentFor,
+        "family_member_id": null,
+        "payment_amount": paymentAmount,
+        "payment_type_id": 1,
+        "reference_code": null,
+        "reference_code_expiry_date": null,
+        "payment_date": new Date(),
+        "created_by": 0,
+        "last_modified_by": 0
+    }
 
     if (paymentType === 'resident') {
         databaseServiceUrl = `${databaseServiceBaseUrl}/api/v1/payments`
@@ -78,22 +93,13 @@ const getResponse = async (req, res, next) => {
     }
 
     try {
-        const options = {
-            "url": databaseServiceUrl,
-            "method": 'POST',
-            "headers": {
-                'Accept': 'application/json',
-                'Accept-Charset': 'utf-8',
-                'User-Agent': 'my-reddit-client'
-            },
-            "body": {
-                "payment_id": orderId,
-                "payment_status": 'PENDING'
-            }
-        };
-
-        request(options, (err, res, body) => {
-            const result = JSON.parse(res);
+        paymentBody.payment_status = "PENDING"
+        request.post({
+            headers: { 'content-type': 'application/json' },
+            url: databaseServiceUrl,
+            json: paymentBody
+        }, (error, response, body) => {
+            console.log(body);
         });
     }
     catch (error) {
@@ -106,7 +112,7 @@ const getResponse = async (req, res, next) => {
     }
 
     try {
-        const apiRequest = { orderId: orderId };
+        const apiRequest = { paymentId: paymentId };
         const requestUrl = gatewayService.getRequestUrl("REST", apiRequest);
         await gatewayService.paymentResult(requestUrl, async (error, result) => {
 
@@ -119,24 +125,14 @@ const getResponse = async (req, res, next) => {
                     field: null,
                     validationType: null
                 }
-
                 try {
-                    const options = {
-                        "url": databaseServiceUrl,
-                        "method": 'POST',
-                        "headers": {
-                            'Accept': 'application/json',
-                            'Accept-Charset': 'utf-8',
-                            'User-Agent': 'my-reddit-client'
-                        },
-                        "body": {
-                            "payment_id": orderId,
-                            "payment_status": 'FAIL'
-                        }
-                    };
-
-                    request(options, (err, res, body) => {
-                        const result = JSON.parse(res);
+                    paymentBody.payment_status = "FAILED"
+                    request.post({
+                        headers: { 'content-type': 'application/json' },
+                        url: databaseServiceUrl,
+                        json: paymentBody
+                    }, (error, response, body) => {
+                        console.log(body);
                     });
                 }
                 catch (error) {
@@ -159,22 +155,13 @@ const getResponse = async (req, res, next) => {
                 }
 
                 try {
-                    const options = {
-                        "url": databaseServiceUrl,
-                        "method": 'POST',
-                        "headers": {
-                            'Accept': 'application/json',
-                            'Accept-Charset': 'utf-8',
-                            'User-Agent': 'my-reddit-client'
-                        },
-                        "body": {
-                            "payment_id": orderId,
-                            "payment_status": 'SUCCESS'
-                        }
-                    };
-
-                    request(options, (err, res, body) => {
-                        const result = JSON.parse(res);
+                    paymentBody.payment_status = "COMPLETED"
+                    request.post({
+                        headers: { 'content-type': 'application/json' },
+                        url: databaseServiceUrl,
+                        json: paymentBody
+                    }, (error, response, body) => {
+                        console.log(body);
                     });
                 }
                 catch (error) {
