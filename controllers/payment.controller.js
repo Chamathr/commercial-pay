@@ -10,19 +10,21 @@ const errorPageUrl = utils.getErrorPageUrl()
 const staticPageBaseUrl = utils.getStaticPageBaseUrl()
 const databaseServiceBaseUrl = utils.getDatabaseServiceBaseUrl()
 
+/*start the payment process by creating session id*/
 const makePayment = async (req, res, next) => {
 
     const paymentId = req.body.paymentId;
     const paymentType = req.body.paymentType
     const paymentFor = req.body.paymentFor
     const paymentAmount = req.body.paymentAmount
-    const familyMemberId = req.body.familyMemberId 
+    const familyMemberId = req.body.familyMemberId
     const paymentTypeId = req.body.paymentTypeId
-    const referenceCode = req.body.referenceCode 
-    const referenceCodeExpiryDate = req.body.referenceCodeExpiryDate 
+    const referenceCode = req.body.referenceCode
+    const referenceCodeExpiryDate = req.body.referenceCodeExpiryDate
     const createdBy = req.body.createdBy
     const lastModifiedBy = req.body.lastModifiedBy
 
+    /*configuration that need to pass to the static page*/
     const requestData = {
         "apiOperation": "CREATE_CHECKOUT_SESSION",
         "order": {
@@ -42,12 +44,14 @@ const makePayment = async (req, res, next) => {
                 "orderSummary": 'SHOW',
                 "shipping": 'HIDE'
             },
+            /*webhook url that triggers after complete the payment process*/
             "returnUrl": `${webhookBaseUrl}/process/pay/response?paymentId=${paymentId}&paymentType=${paymentType}&paymentFor=${paymentFor}&paymentAmount=${paymentAmount}&familyMemberId=${familyMemberId}&paymentTypeId=${paymentTypeId}&referenceCode=${referenceCode}&referenceCodeExpiryDate=${referenceCodeExpiryDate}&createdBy=${createdBy}&lastModifiedBy=${lastModifiedBy}`
 
         },
     }
 
     try {
+        /*create the session id*/
         gatewayService.getSession(requestData, async (result) => {
             const paymentUrl = `${staticPageBaseUrl}/?sessionId=${result.session?.id}`
             const responseBody = {
@@ -69,7 +73,7 @@ const makePayment = async (req, res, next) => {
 
 };
 
-
+/*get the response(success/error) after complete the payment process*/
 const getResponse = async (req, res, next) => {
 
     const paymentId = req.query.paymentId
@@ -106,6 +110,7 @@ const getResponse = async (req, res, next) => {
     }
 
     try {
+        /*save 'PENDING' status by calling to resident/business service*/
         paymentBody.payment_status = "PENDING"
         request.post({
             headers: { 'content-type': 'application/json' },
@@ -127,8 +132,9 @@ const getResponse = async (req, res, next) => {
     try {
         const apiRequest = { paymentId: paymentId };
         const requestUrl = gatewayService.getRequestUrl("REST", apiRequest);
-        await gatewayService.paymentResult(requestUrl, async (error, result) => {
 
+        /*call the get response API*/
+        await gatewayService.paymentResult(requestUrl, async (error, result) => {
             if (error) {
                 const reserror = {
                     error: true,
@@ -139,6 +145,7 @@ const getResponse = async (req, res, next) => {
                     validationType: null
                 }
                 try {
+                    /*save 'FAILED' status by calling to residen/business service*/
                     paymentBody.payment_status = "FAILED"
                     request.post({
                         headers: { 'content-type': 'application/json' },
@@ -168,6 +175,7 @@ const getResponse = async (req, res, next) => {
                 }
 
                 try {
+                    /*save 'COMPLETED' status by calling to residen/business service*/
                     paymentBody.payment_status = "COMPLETED"
                     request.post({
                         headers: { 'content-type': 'application/json' },
